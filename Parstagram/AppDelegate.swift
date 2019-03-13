@@ -24,6 +24,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 configuration.server = "https://quiet-springs-97236.herokuapp.com/parse"
             })
         )
+        
+        if PFUser.current() != nil {
+            let main = UIStoryboard(name: "Main", bundle: nil)
+            let feedNavigationController = main.instantiateViewController(withIdentifier: "TabController")
+            
+            window?.rootViewController = feedNavigationController
+        }
 
         return true
     }

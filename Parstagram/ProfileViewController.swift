@@ -1,8 +1,8 @@
 //
-//  CameraViewController.swift
+//  ProfileViewController.swift
 //  Parstagram
 //
-//  Created by Caleb Giles on 3/5/19.
+//  Created by Caleb Giles on 3/12/19.
 //  Copyright © 2019 Caleb Giles. All rights reserved.
 //
 
@@ -10,40 +10,29 @@ import UIKit
 import AlamofireImage
 import Parse
 
-class CameraViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class ProfileViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
-    @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet weak var commentField: UITextField!
+    @IBOutlet weak var usernameLabel: UILabel!
+    
+    @IBOutlet weak var profileImage: UIImageView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let user = PFUser.current()!
+        usernameLabel.text = user["username"] as? String
+        if(user["profile_image"] != nil){
+            let imageFile = user["profile_image"] as! PFFileObject
+            let urlString = imageFile.url!
+            let url = URL(string: urlString)!
+            
+            profileImage.af_setImage(withURL: url)
+        }
 
         // Do any additional setup after loading the view.
     }
     
-    @IBAction func onSubmit(_ sender: Any) {
-        let post = PFObject(className: "Posts")
-        
-        post["caption"] = commentField.text
-        post["author"] = PFUser.current()
-        
-        let imageData = imageView.image!.pngData()
-        let file = PFFileObject(data: imageData!)
-        
-        post["image"] = file
-        
-        post.saveInBackground { (success, error) in
-            if success{
-                self.dismiss(animated: true, completion: nil)
-            }
-            else{
-                print("error onSubmit: \(error)")
-            }
-        }
-        
-    }
-    
- 
-    @IBAction func onCameraButton(_ sender: Any) {
+
+    @IBAction func onUpdateButton(_ sender: Any) {
         let picker  = UIImagePickerController()
         picker.delegate = self
         picker.allowsEditing = true
@@ -58,13 +47,31 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
         
     }
     
+    @IBAction func onSaveChangesButton(_ sender: Any) {
+        let user = PFUser.current()!
+        
+        let imageData = profileImage.image!.pngData()
+        let file = PFFileObject(data: imageData!)
+        
+        user["profile_image"] = file
+        
+        user.saveInBackground { (success, error) in
+            if success{
+                self.dismiss(animated: true, completion: nil)
+            }
+            else{
+                print("error onSubmit: \(error)")
+            }
+        }
+    }
+    
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let image = info[.editedImage] as! UIImage
         
         let size = CGSize(width:300, height: 300)
         let scaledImage = image.af_imageAspectScaled(toFill: size)
         
-        imageView.image = scaledImage
+        profileImage.image = scaledImage
         
         dismiss(animated: true, completion: nil)
     }
